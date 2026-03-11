@@ -7,169 +7,208 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>BIM+NP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; width: 100%; height: 100vh; overflow: hidden; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { width: 100%; height: 100vh; overflow: hidden; font-family: 'Inter', 'Segoe UI', sans-serif; }
 
-        /* Panel flotante del checklist */
+        /* ── SIDEBAR PANEL ── */
         #checklist-panel {
             display: none;
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 520px;
-            max-height: 85vh;
-            overflow-y: auto;
-            background: #1a1a2e;
-            border: 1px solid #2d2d4e;
-            border-radius: 16px;
-            padding: 28px;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 100vh;
+            background: #1c1c1e;
             z-index: 9999;
-            box-shadow: 0 24px 64px rgba(0,0,0,0.7);
-            font-family: 'Segoe UI', sans-serif;
-            color: #e0e0f0;
-            scrollbar-width: thin;
-            scrollbar-color: #3a3a6e #1a1a2e;
+            flex-direction: column;
+            overflow: hidden;
         }
-        #checklist-panel::-webkit-scrollbar { width: 6px; }
-        #checklist-panel::-webkit-scrollbar-track { background: #1a1a2e; }
-        #checklist-panel::-webkit-scrollbar-thumb { background: #3a3a6e; border-radius: 3px; }
+        #checklist-panel.visible {
+            display: flex;
+        }
 
+        /* Header */
         .panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #2d2d4e;
+            padding: 18px 20px 14px 20px;
+            border-bottom: 1px solid #2c2c2e;
+            flex-shrink: 0;
         }
-        .panel-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #a78bfa;
+        .panel-header-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.2px;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: #8e8e93;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s, background 0.2s;
+        }
+        .close-btn:hover { background: #2c2c2e; color: #ffffff; }
+
+        /* Step title */
+        .panel-step-block {
+            padding: 16px 20px 12px 20px;
+            border-bottom: 1px solid #2c2c2e;
+            flex-shrink: 0;
+        }
+        .panel-step-title {
             display: flex;
             align-items: center;
             gap: 10px;
+            margin-bottom: 8px;
         }
-        .panel-title .step-icon {
-            width: 32px; height: 32px;
-            background: linear-gradient(135deg, #7c3aed, #a78bfa);
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 16px; font-weight: 800; color: white;
-        }
-        .close-btn {
-            background: #2d2d4e;
-            border: none;
-            color: #a0a0c0;
-            width: 32px; height: 32px;
-            border-radius: 8px;
-            cursor: pointer;
+        .step-emoji {
             font-size: 18px;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
+            line-height: 1;
         }
-        .close-btn:hover { background: #3d3d6e; color: #fff; }
-
+        .step-title-text {
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.3;
+        }
         .step-objective {
             font-size: 12px;
-            color: #7c7ca0;
-            font-style: italic;
-            margin-bottom: 16px;
+            color: #8e8e93;
             line-height: 1.5;
+            padding-left: 2px;
         }
 
+        /* Items container */
+        .checklist-items-wrap {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 20px 20px;
+            scrollbar-width: thin;
+            scrollbar-color: #3a3a3c #1c1c1e;
+        }
+        .checklist-items-wrap::-webkit-scrollbar { width: 4px; }
+        .checklist-items-wrap::-webkit-scrollbar-track { background: #1c1c1e; }
+        .checklist-items-wrap::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 2px; }
+
+        /* Individual item */
         .checklist-item {
             display: flex;
             align-items: flex-start;
-            gap: 12px;
-            padding: 10px 12px;
-            border-radius: 10px;
-            margin-bottom: 8px;
-            background: #22223a;
-            border: 1px solid #2d2d4e;
-            transition: all 0.2s;
+            gap: 10px;
+            padding: 10px 0;
             cursor: pointer;
+            border-bottom: 1px solid #2c2c2e;
+            transition: opacity 0.2s;
         }
-        .checklist-item:hover { background: #2a2a4a; border-color: #4a4a7e; }
-        .checklist-item.checked { background: #1e2d1e; border-color: #2d4a2d; }
+        .checklist-item:last-child { border-bottom: none; }
+        .checklist-item:hover { opacity: 0.85; }
 
         .check-box {
-            width: 20px; height: 20px; min-width: 20px;
-            border: 2px solid #4a4a7e;
-            border-radius: 5px;
-            display: flex; align-items: center; justify-content: center;
+            width: 16px;
+            height: 16px;
+            min-width: 16px;
+            border: 1.5px solid #636366;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 2px;
             transition: all 0.2s;
-            margin-top: 1px;
+            background: transparent;
         }
         .checklist-item.checked .check-box {
             background: #22c55e;
             border-color: #22c55e;
         }
-        .check-icon { display: none; color: white; font-size: 12px; font-weight: 700; }
+        .check-icon { display: none; color: white; font-size: 10px; font-weight: 800; }
         .checklist-item.checked .check-icon { display: block; }
 
         .item-text {
             font-size: 13px;
             line-height: 1.5;
-            color: #c0c0e0;
+            color: #d1d1d6;
         }
         .checklist-item.checked .item-text {
-            color: #6b7280;
+            color: #636366;
             text-decoration: line-through;
         }
-        .item-text strong { color: #e0e0ff; font-weight: 600; }
-        .checklist-item.checked .item-text strong { color: #6b7280; }
+        .item-text strong { color: #ffffff; font-weight: 600; }
+        .checklist-item.checked .item-text strong { color: #636366; }
 
-        /* Overlay de fondo */
-        #checklist-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 9998;
-            backdrop-filter: blur(2px);
+        /* Progress footer */
+        .panel-footer {
+            padding: 14px 20px;
+            border-top: 1px solid #2c2c2e;
+            flex-shrink: 0;
         }
-        #checklist-overlay.visible { display: block; }
-        #checklist-panel.visible { display: block; }
-
+        .progress-label {
+            font-size: 11px;
+            color: #8e8e93;
+            margin-bottom: 6px;
+        }
         .progress-bar-wrap {
-            height: 6px;
-            background: #2d2d4e;
-            border-radius: 3px;
-            margin-bottom: 18px;
+            height: 4px;
+            background: #3a3a3c;
+            border-radius: 2px;
             overflow: hidden;
         }
         .progress-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, #7c3aed, #22c55e);
-            border-radius: 3px;
+            background: #22c55e;
+            border-radius: 2px;
             transition: width 0.4s ease;
         }
-        .progress-label {
-            font-size: 11px;
-            color: #7c7ca0;
-            margin-bottom: 6px;
+
+        /* ── NUMBERED ICONS on the map ── */
+        .mp-tag-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.8);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
         }
     </style>
 </head>
-<body style="width: 100%; height: 100vh; margin: 0;">
-    <div id="checklist-overlay"></div>
+<body>
+    <!-- SIDEBAR PANEL -->
     <div id="checklist-panel">
         <div class="panel-header">
-            <div class="panel-title">
-                <div class="step-icon" id="panel-step-num">1</div>
-                <span id="panel-title-text">Paso 1</span>
-            </div>
+            <span class="panel-header-label" id="panel-header-label">Paso 1</span>
             <button class="close-btn" onclick="closeChecklist()">✕</button>
         </div>
-        <div class="step-objective" id="panel-objective"></div>
-        <div class="progress-label" id="progress-label">0 / 0 completados</div>
-        <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+        <div class="panel-step-block">
+            <div class="panel-step-title">
+                <span class="step-emoji" id="panel-step-emoji">📋</span>
+                <span class="step-title-text" id="panel-title-text">Paso 1</span>
+            </div>
+            <div class="step-objective" id="panel-objective"></div>
         </div>
-        <div id="checklist-items-container"></div>
+        <div class="checklist-items-wrap" id="checklist-items-container"></div>
+        <div class="panel-footer">
+            <div class="progress-label" id="progress-label">0 / 0 completados</div>
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+            </div>
+        </div>
     </div>
 
     <iframe id="showcase" width="100%" height="100%"
@@ -179,6 +218,9 @@
     <script>
         const showcase = document.getElementById('showcase');
         let sdk;
+
+        // Step emojis by step id
+        const stepEmojis = { 1: '📋', 2: '⚡', 3: '🔌', 4: '🔒', 5: '🏷️' };
 
         // =====================================================
         // DEFINICIÓN DE LOS PASOS DEL CHECKLIST
@@ -270,14 +312,14 @@
             if (!step) return;
             currentStepId = stepId;
 
-            document.getElementById('panel-step-num').textContent = step.id;
+            document.getElementById('panel-header-label').textContent = `Paso ${step.id}`;
+            document.getElementById('panel-step-emoji').textContent = stepEmojis[step.id] || '📋';
             document.getElementById('panel-title-text').textContent = step.label;
             document.getElementById('panel-objective').textContent = step.objective;
 
             renderItems(step);
             updateProgress(step);
 
-            document.getElementById('checklist-overlay').classList.add('visible');
             document.getElementById('checklist-panel').classList.add('visible');
         }
 
@@ -315,12 +357,9 @@
         }
 
         function closeChecklist() {
-            document.getElementById('checklist-overlay').classList.remove('visible');
             document.getElementById('checklist-panel').classList.remove('visible');
             currentStepId = null;
         }
-
-        document.getElementById('checklist-overlay').addEventListener('click', closeChecklist);
 
         // =====================================================
         // INICIALIZACIÓN DEL SDK
@@ -393,7 +432,7 @@
 
             // Coordenadas al hacer click en el espacio
             sdk.Pointer.intersection.subscribe((intersection) => {
-                console.log("📍 COORDENADAS EXACTAS --->", intersection.position);
+                console.log("📍 COORDENADAS EXACTAS ---> ", intersection.position);
             });
         });
     </script>
