@@ -246,6 +246,56 @@
             border: 2px solid rgba(255, 255, 255, 0.8);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
         }
+
+        /* ── TOGGLE FBX BUTTON ── */
+        #toggle-fbx-btn {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(28, 28, 30, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: all 0.25s ease;
+            user-select: none;
+        }
+        #toggle-fbx-btn:hover {
+            background: rgba(44, 44, 46, 0.95);
+            border-color: rgba(255,255,255,0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+        }
+        #toggle-fbx-btn:active {
+            transform: translateY(0);
+        }
+        .fbx-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 6px #22c55e;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        #toggle-fbx-btn.off .fbx-dot {
+            background: #636366;
+            box-shadow: none;
+        }
+        #toggle-fbx-btn.off {
+            opacity: 0.7;
+        }
     </style>
 </head>
 
@@ -272,6 +322,13 @@
         </div>
     </div>
 
+    <!-- TOGGLE FBX BUTTON -->
+    <button id="toggle-fbx-btn" onclick="toggleFbxModel()" style="display:none">
+        <span class="fbx-dot"></span>
+        <span>🏗️</span>
+        <span id="toggle-fbx-label">Modelo BIM</span>
+    </button>
+
     <iframe id="showcase" width="100%" height="100%"
         src="./bundle/showcase.html?m=hXEV8zd9GFy&play=1&qs=1&log=0&applicationKey=myhcpcdgdh7907ggei7s5f4md"
         frameborder="0" allowfullscreen allow="vr; xr-spatial-tracking"></iframe>
@@ -279,6 +336,8 @@
     <script>
         const showcase = document.getElementById('showcase');
         let sdk;
+        let fbxNode = null;      // referencia al nodo FBX
+        let fbxVisible = true;   // estado actual de visibilidad
 
         // Step emojis by step id
         const stepEmojis = { 1: '📋', 2: '⚡', 3: '🔌', 4: '🔒', 5: '🏷️' };
@@ -427,6 +486,25 @@
             currentStepId = null;
         }
 
+        function toggleFbxModel() {
+            if (!fbxNode) return;
+            fbxVisible = !fbxVisible;
+
+            // Cambiar visibilidad en todos los componentes del nodo
+            fbxNode.obj3D.visible = fbxVisible;
+
+            // Actualizar botón
+            const btn = document.getElementById('toggle-fbx-btn');
+            const label = document.getElementById('toggle-fbx-label');
+            if (fbxVisible) {
+                btn.classList.remove('off');
+                label.textContent = 'Modelo BIM';
+            } else {
+                btn.classList.add('off');
+                label.textContent = 'Modelo BIM';
+            }
+        }
+
         // =====================================================
         // INICIALIZACIÓN DEL SDK
         // =====================================================
@@ -447,16 +525,18 @@
 
             // Modelo FBX
             var escala2 = 0.1;
-            var node = await sdk.Scene.createNode();
-            var initial2 = {
+            fbxNode = await sdk.Scene.createNode();
+            var fbxComponent = fbxNode.addComponent('mp.fbxLoader', {
                 url: "Instalaciones-2.FBX",
                 visible: true,
                 localScale: { x: escala2, y: escala2, z: escala2 },
                 localPosition: { x: -18, y: -2.2, z: -2.5 },
                 localRotation: { x: 90, y: 0, z: 0 }
-            };
-            node.addComponent('mp.fbxLoader', initial2);
-            node.start();
+            });
+            fbxNode.start();
+
+            // Habilitar el botón una vez el modelo está listo
+            document.getElementById('toggle-fbx-btn').style.display = 'flex';
 
             // =====================================================
             // HELPERS: crear ícono numerado con canvas
