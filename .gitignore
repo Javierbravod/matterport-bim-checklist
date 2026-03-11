@@ -1,0 +1,16 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Carpeta de ejemplos SDK (no necesaria para producción)
+showcase-sdk-examples/
+
+# FBX sin usar
+planta.FBX
+bundle/Instalaciones(0).fbx
+bundle/Instalaciones(1).fbx
+
+# Sistema
+desktop.ini
+.DS_Store
+Thumbs.db

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>BIM+NP</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; width: 100%; height: 100vh; overflow: hidden; }
+
+        /* Panel flotante del checklist */
+        #checklist-panel {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 520px;
+            max-height: 85vh;
+            overflow-y: auto;
+            background: #1a1a2e;
+            border: 1px solid #2d2d4e;
+            border-radius: 16px;
+            padding: 28px;
+            z-index: 9999;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+            font-family: 'Segoe UI', sans-serif;
+            color: #e0e0f0;
+            scrollbar-width: thin;
+            scrollbar-color: #3a3a6e #1a1a2e;
+        }
+        #checklist-panel::-webkit-scrollbar { width: 6px; }
+        #checklist-panel::-webkit-scrollbar-track { background: #1a1a2e; }
+        #checklist-panel::-webkit-scrollbar-thumb { background: #3a3a6e; border-radius: 3px; }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #2d2d4e;
+        }
+        .panel-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #a78bfa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .panel-title .step-icon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: 800; color: white;
+        }
+        .close-btn {
+            background: #2d2d4e;
+            border: none;
+            color: #a0a0c0;
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .close-btn:hover { background: #3d3d6e; color: #fff; }
+
+        .step-objective {
+            font-size: 12px;
+            color: #7c7ca0;
+            font-style: italic;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            background: #22223a;
+            border: 1px solid #2d2d4e;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .checklist-item:hover { background: #2a2a4a; border-color: #4a4a7e; }
+        .checklist-item.checked { background: #1e2d1e; border-color: #2d4a2d; }
+
+        .check-box {
+            width: 20px; height: 20px; min-width: 20px;
+            border: 2px solid #4a4a7e;
+            border-radius: 5px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            margin-top: 1px;
+        }
+        .checklist-item.checked .check-box {
+            background: #22c55e;
+            border-color: #22c55e;
+        }
+        .check-icon { display: none; color: white; font-size: 12px; font-weight: 700; }
+        .checklist-item.checked .check-icon { display: block; }
+
+        .item-text {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #c0c0e0;
+        }
+        .checklist-item.checked .item-text {
+            color: #6b7280;
+            text-decoration: line-through;
+        }
+        .item-text strong { color: #e0e0ff; font-weight: 600; }
+        .checklist-item.checked .item-text strong { color: #6b7280; }
+
+        /* Overlay de fondo */
+        #checklist-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9998;
+            backdrop-filter: blur(2px);
+        }
+        #checklist-overlay.visible { display: block; }
+        #checklist-panel.visible { display: block; }
+
+        .progress-bar-wrap {
+            height: 6px;
+            background: #2d2d4e;
+            border-radius: 3px;
+            margin-bottom: 18px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7c3aed, #22c55e);
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+        .progress-label {
+            font-size: 11px;
+            color: #7c7ca0;
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body style="width: 100%; height: 100vh; margin: 0;">
+    <div id="checklist-overlay"></div>
+    <div id="checklist-panel">
+        <div class="panel-header">
+            <div class="panel-title">
+                <div class="step-icon" id="panel-step-num">1</div>
+                <span id="panel-title-text">Paso 1</span>
+            </div>
+            <button class="close-btn" onclick="closeChecklist()">✕</button>
+        </div>
+        <div class="step-objective" id="panel-objective"></div>
+        <div class="progress-label" id="progress-label">0 / 0 completados</div>
+        <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+        </div>
+        <div id="checklist-items-container"></div>
+    </div>
+
+    <iframe id="showcase" width="100%" height="100%"
+        src="./bundle/showcase.html?m=hXEV8zd9GFy&play=1&qs=1&log=0&applicationKey=myhcpcdgdh7907ggei7s5f4md"
+        frameborder="0" allowfullscreen allow="vr; xr-spatial-tracking"></iframe>
+
+    <script>
+        const showcase = document.getElementById('showcase');
+        let sdk;
+
+        // =====================================================
+        // DEFINICIÓN DE LOS PASOS DEL CHECKLIST
+        // =====================================================
+        const checklistSteps = [
+            {
+                id: 1,
+                label: "Paso 1: Notificación y Autorización",
+                objective: "Asegurar que el área sabe que el equipo se va a detener.",
+                anchorPosition: { x: -17.48982384704301, y: 1.2687677861740818, z: -2.3042635948142762 },
+                stemVector: { x: 0, y: 0.3, z: 0 },
+                color: { r: 0.42, g: 0.27, b: 0.97 },
+                items: [
+                    { text: "<strong>Identificar equipo:</strong> Confirmar visualmente el equipo a intervenir (ej. Molino SAC 3)." },
+                    { text: "<strong>Tomar equipo de comunicación:</strong> Interactuar con la radio en la mesa de inicio." },
+                    { text: "<strong>Contactar al encargado:</strong> Solicitar por radio la detención operativa del equipo." },
+                    { text: "<strong>Recibir autorización:</strong> Escuchar la confirmación de detención por parte del jefe de turno antes de avanzar." }
+                ]
+            },
+            {
+                id: 2,
+                label: "Paso 2: Identificación de Fuentes de Energía",
+                objective: "Encontrar el punto exacto donde se debe cortar la energía.",
+                anchorPosition: { x: -12.623932290521346, y: 0.867121838449943, z: -2.625850974736056 },
+                stemVector: { x: 0, y: 0.3, z: 0 },
+                color: { r: 0.97, g: 0.55, b: 0.10 },
+                items: [
+                    { text: "<strong>Navegar a la sala eléctrica:</strong> Dirigirse al área de tableros." },
+                    { text: "<strong>Localizar tablero general:</strong> Identificar el panel principal que alimenta el equipo." },
+                    { text: "<strong>Ubicar el interruptor específico:</strong> Leer las etiquetas del tablero para encontrar la palanca exacta que corresponde al equipo a intervenir." }
+                ]
+            },
+            {
+                id: 3,
+                label: "Paso 3: Aislamiento",
+                objective: "Cortar físicamente el flujo de energía.",
+                anchorPosition: { x: -18.034442683887985, y: 1.222983537795993, z: -2.281127506949742 },
+                stemVector: { x: 0, y: 0.3, z: 0 },
+                color: { r: 0.14, g: 0.78, b: 0.55 },
+                items: [
+                    { text: "<strong>Posicionamiento:</strong> Situarse frente al interruptor identificado en el paso anterior." },
+                    { text: "<strong>Accionar mecanismo:</strong> Bajar la palanca o girar el interruptor a la posición de apagado (\"OFF\")." },
+                    { text: "<strong>Confirmación sensorial:</strong> Validar el corte mediante el feedback visual (luces apagadas) y auditivo (sonido del corte)." }
+                ]
+            },
+            {
+                id: 4,
+                label: "Paso 4: Recolección de Etiquetas y Dispositivos",
+                objective: "Obtener las herramientas personales de seguridad.",
+                anchorPosition: { x: -18.9632054059643, y: 1.230397616938383, z: -2.285493963118637 },
+                stemVector: { x: 0, y: 0.3, z: 0 },
+                color: { r: 0.95, g: 0.20, b: 0.40 },
+                items: [
+                    { text: "<strong>Ir a la estación de bloqueo:</strong> Desplazarse hacia la caja de seguridad amarilla (<em>SafeLockout</em>)." },
+                    { text: "<strong>Tomar pinza múltiple (hasp):</strong> Retirar la pinza de la caja." },
+                    { text: "<strong>Tomar candado personal:</strong> Retirar el candado asignado al trabajador." },
+                    { text: "<strong>Tomar tarjeta de peligro:</strong> Retirar la etiqueta y confirmar que los datos (nombre, fecha, motivo) estén visibles." }
+                ]
+            },
+            {
+                id: 5,
+                label: "Paso 5: Bloqueo y Etiquetado",
+                objective: "Bloquear físicamente el interruptor para que nadie pueda encenderlo por error.",
+                anchorPosition: { x: -20.1439173752873, y: 1.40541809247117, z: 1.722705161011619 },
+                stemVector: { x: 0, y: 0.3, z: 0 },
+                color: { r: 0.95, g: 0.75, b: 0.05 },
+                items: [
+                    { text: "<strong>Regresar al punto de corte:</strong> Volver al tablero aislado en el Paso 3." },
+                    { text: "<strong>Instalar pinza:</strong> Colocar la pinza en los orificios de bloqueo de la palanca." },
+                    { text: "<strong>Instalar candado:</strong> Insertar el candado cerrando la pinza." },
+                    { text: "<strong>Instalar tarjeta:</strong> Enganchar la tarjeta de advertencia de \"PELIGRO\" junto al candado." }
+                ]
+            }
+        ];
+
+        // Estado de los checkboxes: stepId -> array de booleans
+        const checkState = {};
+        checklistSteps.forEach(step => {
+            checkState[step.id] = step.items.map(() => false);
+        });
+
+        let currentStepId = null;
+
+        // =====================================================
+        // FUNCIONES DEL PANEL
+        // =====================================================
+        function openChecklist(stepId) {
+            const step = checklistSteps.find(s => s.id === stepId);
+            if (!step) return;
+            currentStepId = stepId;
+
+            document.getElementById('panel-step-num').textContent = step.id;
+            document.getElementById('panel-title-text').textContent = step.label;
+            document.getElementById('panel-objective').textContent = step.objective;
+
+            renderItems(step);
+            updateProgress(step);
+
+            document.getElementById('checklist-overlay').classList.add('visible');
+            document.getElementById('checklist-panel').classList.add('visible');
+        }
+
+        function renderItems(step) {
+            const container = document.getElementById('checklist-items-container');
+            container.innerHTML = '';
+            step.items.forEach((item, idx) => {
+                const checked = checkState[step.id][idx];
+                const div = document.createElement('div');
+                div.className = 'checklist-item' + (checked ? ' checked' : '');
+                div.innerHTML = `
+                    <div class="check-box">
+                        <span class="check-icon">✓</span>
+                    </div>
+                    <div class="item-text">${item.text}</div>
+                `;
+                div.onclick = () => toggleItem(step.id, idx);
+                container.appendChild(div);
+            });
+        }
+
+        function toggleItem(stepId, idx) {
+            checkState[stepId][idx] = !checkState[stepId][idx];
+            const step = checklistSteps.find(s => s.id === stepId);
+            renderItems(step);
+            updateProgress(step);
+        }
+
+        function updateProgress(step) {
+            const total = step.items.length;
+            const done = checkState[step.id].filter(Boolean).length;
+            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+            document.getElementById('progress-label').textContent = `${done} / ${total} completados`;
+            document.getElementById('progress-bar').style.width = pct + '%';
+        }
+
+        function closeChecklist() {
+            document.getElementById('checklist-overlay').classList.remove('visible');
+            document.getElementById('checklist-panel').classList.remove('visible');
+            currentStepId = null;
+        }
+
+        document.getElementById('checklist-overlay').addEventListener('click', closeChecklist);
+
+        // =====================================================
+        // INICIALIZACIÓN DEL SDK
+        // =====================================================
+        showcase.addEventListener('load', async function() {
+            try {
+                sdk = await showcase.contentWindow.MP_SDK.connect(showcase, 'myhcpcdgdh7907ggei7s5f4md');
+            } catch(e) {
+                console.error(e);
+                return;
+            }
+
+            console.log('Hello Bundle SDK', sdk);
+
+            // Luces
+            const lights = await sdk.Scene.createNode();
+            lights.addComponent('mp.lights');
+            lights.start();
+
+            // Modelo FBX
+            var escala2 = 0.1;
+            var node = await sdk.Scene.createNode();
+            var initial2 = {
+                url: "Instalaciones-2.FBX",
+                visible: true,
+                localScale: { x: escala2, y: escala2, z: escala2 },
+                localPosition: { x: -24.177, y: 4, z: 5 },
+                localRotation: { x: 0, y: 180.7, z: 0 }
+            };
+            node.addComponent('mp.fbxLoader', initial2);
+            node.start();
+
+            // =====================================================
+            // AGREGAR TAGS DEL CHECKLIST CON sdk.Mattertag.add
+            // =====================================================
+            const tagSidMap = {}; // sid -> stepId
+
+            for (const step of checklistSteps) {
+                try {
+                    const [sid] = await sdk.Mattertag.add({
+                        label: step.label,
+                        description: '',
+                        anchorPosition: step.anchorPosition,
+                        stemVector: step.stemVector,
+                        color: step.color
+                    });
+                    tagSidMap[sid] = step.id;
+                    console.log(`✅ Mattertag creado: "${step.label}" -> sid: ${sid}`);
+                } catch(e) {
+                    console.error(`❌ Error creando tag paso ${step.id}:`, e);
+                }
+            }
+
+            // Prevenir que se abra el panel nativo de Matterport
+            const allSids = Object.keys(tagSidMap);
+            if (allSids.length > 0) {
+                sdk.Mattertag.preventAction(allSids, { opening: false })
+                    .then(() => console.log('✅ preventAction OK'))
+                    .catch(e => console.warn('preventAction no disponible:', e));
+            }
+
+            // Escuchar clicks en los tags y abrir el panel del checklist
+            sdk.on(sdk.Mattertag.Event.CLICK, function(sid) {
+                console.log('🔖 Tag clickeado, sid:', sid);
+                const stepId = tagSidMap[sid];
+                if (stepId) {
+                    openChecklist(stepId);
+                }
+            });
+
+            // Coordenadas al hacer click en el espacio
+            sdk.Pointer.intersection.subscribe((intersection) => {
+                console.log("📍 COORDENADAS EXACTAS --->", intersection.position);
+            });
+        });
+    </script>
+</body>
+</html>
