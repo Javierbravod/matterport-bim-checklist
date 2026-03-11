@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -11,8 +13,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { width: 100%; height: 100vh; overflow: hidden; font-family: 'Inter', 'Segoe UI', sans-serif; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
 
         /* ── SIDEBAR PANEL ── */
         #checklist-panel {
@@ -27,6 +39,7 @@
             flex-direction: column;
             overflow: hidden;
         }
+
         #checklist-panel.visible {
             display: flex;
         }
@@ -40,12 +53,14 @@
             border-bottom: 1px solid #2c2c2e;
             flex-shrink: 0;
         }
+
         .panel-header-label {
             font-size: 13px;
             font-weight: 600;
             color: #ffffff;
             letter-spacing: 0.2px;
         }
+
         .close-btn {
             background: none;
             border: none;
@@ -60,7 +75,11 @@
             justify-content: center;
             transition: color 0.2s, background 0.2s;
         }
-        .close-btn:hover { background: #2c2c2e; color: #ffffff; }
+
+        .close-btn:hover {
+            background: #2c2c2e;
+            color: #ffffff;
+        }
 
         /* Step title */
         .panel-step-block {
@@ -68,22 +87,26 @@
             border-bottom: 1px solid #2c2c2e;
             flex-shrink: 0;
         }
+
         .panel-step-title {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 8px;
         }
+
         .step-emoji {
             font-size: 18px;
             line-height: 1;
         }
+
         .step-title-text {
             font-size: 15px;
             font-weight: 700;
             color: #ffffff;
             line-height: 1.3;
         }
+
         .step-objective {
             font-size: 12px;
             color: #8e8e93;
@@ -99,9 +122,19 @@
             scrollbar-width: thin;
             scrollbar-color: #3a3a3c #1c1c1e;
         }
-        .checklist-items-wrap::-webkit-scrollbar { width: 4px; }
-        .checklist-items-wrap::-webkit-scrollbar-track { background: #1c1c1e; }
-        .checklist-items-wrap::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 2px; }
+
+        .checklist-items-wrap::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .checklist-items-wrap::-webkit-scrollbar-track {
+            background: #1c1c1e;
+        }
+
+        .checklist-items-wrap::-webkit-scrollbar-thumb {
+            background: #3a3a3c;
+            border-radius: 2px;
+        }
 
         /* Individual item */
         .checklist-item {
@@ -113,8 +146,14 @@
             border-bottom: 1px solid #2c2c2e;
             transition: opacity 0.2s;
         }
-        .checklist-item:last-child { border-bottom: none; }
-        .checklist-item:hover { opacity: 0.85; }
+
+        .checklist-item:last-child {
+            border-bottom: none;
+        }
+
+        .checklist-item:hover {
+            opacity: 0.85;
+        }
 
         .check-box {
             width: 16px;
@@ -129,24 +168,42 @@
             transition: all 0.2s;
             background: transparent;
         }
+
         .checklist-item.checked .check-box {
             background: #22c55e;
             border-color: #22c55e;
         }
-        .check-icon { display: none; color: white; font-size: 10px; font-weight: 800; }
-        .checklist-item.checked .check-icon { display: block; }
+
+        .check-icon {
+            display: none;
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .checklist-item.checked .check-icon {
+            display: block;
+        }
 
         .item-text {
             font-size: 13px;
             line-height: 1.5;
             color: #d1d1d6;
         }
+
         .checklist-item.checked .item-text {
             color: #636366;
             text-decoration: line-through;
         }
-        .item-text strong { color: #ffffff; font-weight: 600; }
-        .checklist-item.checked .item-text strong { color: #636366; }
+
+        .item-text strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .checklist-item.checked .item-text strong {
+            color: #636366;
+        }
 
         /* Progress footer */
         .panel-footer {
@@ -154,17 +211,20 @@
             border-top: 1px solid #2c2c2e;
             flex-shrink: 0;
         }
+
         .progress-label {
             font-size: 11px;
             color: #8e8e93;
             margin-bottom: 6px;
         }
+
         .progress-bar-wrap {
             height: 4px;
             background: #3a3a3c;
             border-radius: 2px;
             overflow: hidden;
         }
+
         .progress-bar-fill {
             height: 100%;
             background: #22c55e;
@@ -183,11 +243,12 @@
             font-size: 13px;
             font-weight: 700;
             color: #fff;
-            border: 2px solid rgba(255,255,255,0.8);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
         }
     </style>
 </head>
+
 <body>
     <!-- SIDEBAR PANEL -->
     <div id="checklist-panel">
@@ -230,8 +291,8 @@
                 id: 1,
                 label: "Paso 1: Notificación y Autorización",
                 objective: "Asegurar que el área sabe que el equipo se va a detener.",
-                anchorPosition: { x: -17.48982384704301, y: 1.2687677861740818, z: -2.3042635948142762 },
-                stemVector: { x: 0, y: 0.3, z: 0 },
+                anchorPosition: { x: -17.48982384704301, y: 1.26, z: -2.3042635948142762 },
+                stemVector: { x: 0, y: 0, z: 0 },
                 color: { r: 0.42, g: 0.27, b: 0.97 },
                 iconId: 'public_characters_1',
                 items: [
@@ -245,8 +306,8 @@
                 id: 2,
                 label: "Paso 2: Identificación de Fuentes de Energía",
                 objective: "Encontrar el punto exacto donde se debe cortar la energía.",
-                anchorPosition: { x: -12.623932290521346, y: 0.867121838449943, z: -2.625850974736056 },
-                stemVector: { x: 0, y: 0.3, z: 0 },
+                anchorPosition: { x: -12.623932290521346, y: 1.26, z: -2.625850974736056 },
+                stemVector: { x: 0, y: 0, z: 0 },
                 color: { r: 0.97, g: 0.55, b: 0.10 },
                 iconId: 'public_characters_2',
                 items: [
@@ -259,8 +320,8 @@
                 id: 3,
                 label: "Paso 3: Aislamiento",
                 objective: "Cortar físicamente el flujo de energía.",
-                anchorPosition: { x: -18.034442683887985, y: 1.222983537795993, z: -2.281127506949742 },
-                stemVector: { x: 0, y: 0.3, z: 0 },
+                anchorPosition: { x: -18.034442683887985, y: 1.26, z: -2.281127506949742 },
+                stemVector: { x: 0, y: 0, z: 0 },
                 color: { r: 0.14, g: 0.78, b: 0.55 },
                 iconId: 'public_characters_3',
                 items: [
@@ -273,8 +334,8 @@
                 id: 4,
                 label: "Paso 4: Recolección de Etiquetas y Dispositivos",
                 objective: "Obtener las herramientas personales de seguridad.",
-                anchorPosition: { x: -18.9632054059643, y: 1.230397616938383, z: -2.285493963118637 },
-                stemVector: { x: 0, y: 0.3, z: 0 },
+                anchorPosition: { x: -18.9632054059643, y: 1.26, z: -2.285493963118637 },
+                stemVector: { x: 0, y: 0, z: 0 },
                 color: { r: 0.95, g: 0.20, b: 0.40 },
                 iconId: 'public_characters_4',
                 items: [
@@ -288,8 +349,8 @@
                 id: 5,
                 label: "Paso 5: Bloqueo y Etiquetado",
                 objective: "Bloquear físicamente el interruptor para que nadie pueda encenderlo por error.",
-                anchorPosition: { x: -20.1439173752873, y: 1.40541809247117, z: 1.722705161011619 },
-                stemVector: { x: 0, y: 0.3, z: 0 },
+                anchorPosition: { x: -20.1439173752873, y: 1.26, z: 1.722705161011619 },
+                stemVector: { x: 0, y: 0, z: 0 },
                 color: { r: 0.95, g: 0.75, b: 0.05 },
                 iconId: 'public_characters_5',
                 items: [
@@ -369,10 +430,10 @@
         // =====================================================
         // INICIALIZACIÓN DEL SDK
         // =====================================================
-        showcase.addEventListener('load', async function() {
+        showcase.addEventListener('load', async function () {
             try {
                 sdk = await showcase.contentWindow.MP_SDK.connect(showcase, 'myhcpcdgdh7907ggei7s5f4md');
-            } catch(e) {
+            } catch (e) {
                 console.error(e);
                 return;
             }
@@ -398,23 +459,66 @@
             node.start();
 
             // =====================================================
+            // HELPERS: crear ícono numerado con canvas
+            // =====================================================
+            function makeNumberIcon(number, color) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 128;
+                canvas.height = 128;
+                const ctx = canvas.getContext('2d');
+                const cx = 64, cy = 64, r = 56;
+
+                // Círculo de fondo con el color del paso
+                const cr = Math.round(color.r * 255);
+                const cg = Math.round(color.g * 255);
+                const cb = Math.round(color.b * 255);
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`;
+                ctx.fill();
+
+                // Borde blanco
+                ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+                ctx.lineWidth = 6;
+                ctx.stroke();
+
+                // Número en blanco, centrado
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 64px Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(number.toString(), cx, cy + 2);
+
+                return canvas.toDataURL('image/png');
+            }
+
+            // =====================================================
             // AGREGAR TAGS DEL CHECKLIST CON sdk.Mattertag.add
             // =====================================================
             const tagSidMap = {}; // sid -> stepId
 
             for (const step of checklistSteps) {
                 try {
+                    // 1. Registrar el ícono numerado (canvas → dataURL → SDK)
+                    const iconId = `paso_num_${step.id}`;
+                    const iconDataUrl = makeNumberIcon(step.id, step.color);
+                    await sdk.Mattertag.registerIcon(iconId, iconDataUrl);
+
+                    // 2. Crear el tag sin iconId (se lo asignamos después con editIcon)
                     const [sid] = await sdk.Mattertag.add({
                         label: step.label,
                         description: '',
                         anchorPosition: step.anchorPosition,
                         stemVector: step.stemVector,
-                        color: step.color,
-                        iconId: step.iconId
+                        color: step.color
                     });
                     tagSidMap[sid] = step.id;
-                    console.log(`✅ Mattertag creado: "${step.label}" -> sid: ${sid}`);
-                } catch(e) {
+
+                    // 3. Aplicar el ícono numerado al disco del tag
+                    await sdk.Mattertag.editIcon(sid, iconId);
+
+                    console.log(`✅ Mattertag creado con ícono: "${step.label}" -> sid: ${sid}`);
+                } catch (e) {
                     console.error(`❌ Error creando tag paso ${step.id}:`, e);
                 }
             }
@@ -428,7 +532,7 @@
             }
 
             // Escuchar clicks en los tags y abrir el panel del checklist
-            sdk.on(sdk.Mattertag.Event.CLICK, function(sid) {
+            sdk.on(sdk.Mattertag.Event.CLICK, function (sid) {
                 console.log('🔖 Tag clickeado, sid:', sid);
                 const stepId = tagSidMap[sid];
                 if (stepId) {
@@ -443,4 +547,5 @@
         });
     </script>
 </body>
+
 </html>
