@@ -250,7 +250,7 @@
         /* ── TOGGLE FBX BUTTON ── */
         #toggle-fbx-btn {
             position: fixed;
-            bottom: 24px;
+            top: 56px;
             left: 24px;
             z-index: 9999;
             display: flex;
@@ -260,26 +260,29 @@
             background: rgba(28, 28, 30, 0.85);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.12);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 20px;
             cursor: pointer;
             font-family: 'Inter', 'Segoe UI', sans-serif;
             font-size: 13px;
             font-weight: 600;
             color: #ffffff;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
             transition: all 0.25s ease;
             user-select: none;
         }
+
         #toggle-fbx-btn:hover {
             background: rgba(44, 44, 46, 0.95);
-            border-color: rgba(255,255,255,0.25);
+            border-color: rgba(255, 255, 255, 0.25);
             transform: translateY(-1px);
-            box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
         }
+
         #toggle-fbx-btn:active {
             transform: translateY(0);
         }
+
         .fbx-dot {
             width: 8px;
             height: 8px;
@@ -289,12 +292,83 @@
             transition: all 0.3s ease;
             flex-shrink: 0;
         }
+
         #toggle-fbx-btn.off .fbx-dot {
             background: #636366;
             box-shadow: none;
         }
+
         #toggle-fbx-btn.off {
             opacity: 0.7;
+        }
+
+        /* ── NEXT STEP BUTTON ── */
+        .next-step-btn {
+            background-color: #22c55e;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+            margin-top: 16px;
+        }
+
+        .next-step-btn:hover {
+            background-color: #16a34a;
+        }
+
+        /* ── ADVANCE TRAINING BUTTON ── */
+        #advance-training-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.2px;
+            box-shadow: 0 4px 16px rgba(34, 197, 94, 0.35);
+            transition: all 0.25s ease;
+            user-select: none;
+        }
+
+        #advance-training-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5);
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+        }
+
+        #advance-training-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+        }
+
+        #advance-training-btn.finalizar {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+        }
+
+        #advance-training-btn.finalizar:hover {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+        }
+
+        #advance-training-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
     </style>
 </head>
@@ -329,6 +403,8 @@
         <span id="toggle-fbx-label">Modelo BIM</span>
     </button>
 
+
+
     <iframe id="showcase" width="100%" height="100%"
         src="./bundle/showcase.html?m=hXEV8zd9GFy&play=1&qs=1&log=0&applicationKey=myhcpcdgdh7907ggei7s5f4md"
         frameborder="0" allowfullscreen allow="vr; xr-spatial-tracking"></iframe>
@@ -336,14 +412,36 @@
     <script>
         const showcase = document.getElementById('showcase');
         let sdk;
+        let mpSdk = null;         // alias semántico expuesto tras connect()
         let fbxNode = null;      // referencia al nodo FBX
         let fbxVisible = true;   // estado actual de visibilidad
+
+        // =====================================================
+        // CONFIGURACIÓN MODELO RADIO.FBX  ← ajusta aquí
+        // =====================================================
+        const RADIO_CONFIG = {
+            url: 'Radio.fbx',
+            position: { x: -2.146606233402686, y: 1.5, z: -19.8006284797463639 },  // coordenadas exactas de escena
+            rotation: { x: 0, y: 90, z: 0 },  // ← ajustar eje
+            scale: 0.05                                 // ← ajustar escala
+        };
+        let radioNode = null;   // nodo Three.js del modelo Radio
+        let radioLoaded = false;  // evita cargas duplicadas
 
         // Step emojis by step id
         const stepEmojis = { 1: '📋', 2: '⚡', 3: '🔌', 4: '🔒', 5: '🏷️' };
 
         // =====================================================
         // DEFINICIÓN DE LOS PASOS DEL CHECKLIST
+        // =====================================================
+        // =====================================================
+        // DEFINICIÓN DE LOS PASOS DEL CHECKLIST
+        // ──────────────────────────────────────────────────────
+        // INSTRUCCIÓN PARA CALIBRAR sweep_id:
+        //   Abre la consola del navegador y navega manualmente
+        //   por el modelo. El logger de sweeps (al final del script)
+        //   imprimirá cada sweep_id al que llegues.
+        //   Copia esos IDs y reemplaza los valores de abajo.
         // =====================================================
         const checklistSteps = [
             {
@@ -354,6 +452,10 @@
                 stemVector: { x: 0, y: 0, z: 0 },
                 color: { r: 0.42, g: 0.27, b: 0.97 },
                 iconId: 'public_characters_1',
+                coordinates: {
+                    sweep_id: 'SWEEP_ID_PASO_1',  // ← reemplazar con ID real de consola
+                    rotation: { x: 0, y: 180 }    // pitch / yaw en grados
+                },
                 items: [
                     { text: "<strong>Identificar equipo:</strong> Confirmar visualmente el equipo a intervenir (ej. Molino SAC 3)." },
                     { text: "<strong>Tomar equipo de comunicación:</strong> Interactuar con la radio en la mesa de inicio." },
@@ -369,6 +471,10 @@
                 stemVector: { x: 0, y: 0, z: 0 },
                 color: { r: 0.97, g: 0.55, b: 0.10 },
                 iconId: 'public_characters_2',
+                coordinates: {
+                    sweep_id: '80a800e3dbac4487b5fa87fd1908a2a3',
+                    rotation: { x: 5, y: 90 }
+                },
                 items: [
                     { text: "<strong>Navegar a la sala eléctrica:</strong> Dirigirse al área de tableros." },
                     { text: "<strong>Localizar tablero general:</strong> Identificar el panel principal que alimenta el equipo." },
@@ -383,6 +489,10 @@
                 stemVector: { x: 0, y: 0, z: 0 },
                 color: { r: 0.14, g: 0.78, b: 0.55 },
                 iconId: 'public_characters_3',
+                coordinates: {
+                    sweep_id: 'SWEEP_ID_PASO_3',
+                    rotation: { x: 5, y: 90 }
+                },
                 items: [
                     { text: "<strong>Posicionamiento:</strong> Situarse frente al interruptor identificado en el paso anterior." },
                     { text: "<strong>Accionar mecanismo:</strong> Bajar la palanca o girar el interruptor a la posición de apagado (\"OFF\")." },
@@ -397,6 +507,10 @@
                 stemVector: { x: 0, y: 0, z: 0 },
                 color: { r: 0.95, g: 0.20, b: 0.40 },
                 iconId: 'public_characters_4',
+                coordinates: {
+                    sweep_id: 'SWEEP_ID_PASO_4',
+                    rotation: { x: 0, y: 270 }
+                },
                 items: [
                     { text: "<strong>Ir a la estación de bloqueo:</strong> Desplazarse hacia la caja de seguridad amarilla (<em>SafeLockout</em>)." },
                     { text: "<strong>Tomar pinza múltiple (hasp):</strong> Retirar la pinza de la caja." },
@@ -412,6 +526,10 @@
                 stemVector: { x: 0, y: 0, z: 0 },
                 color: { r: 0.95, g: 0.75, b: 0.05 },
                 iconId: 'public_characters_5',
+                coordinates: {
+                    sweep_id: 'SWEEP_ID_PASO_5',
+                    rotation: { x: 5, y: 90 }
+                },
                 items: [
                     { text: "<strong>Regresar al punto de corte:</strong> Volver al tablero aislado en el Paso 3." },
                     { text: "<strong>Instalar pinza:</strong> Colocar la pinza en los orificios de bloqueo de la palanca." },
@@ -427,30 +545,117 @@
             checkState[step.id] = step.items.map(() => false);
         });
 
-        let currentStepId = null;
+        // ── ÍNDICE SECUENCIAL ──────────────────────────────────
+        let currentStepIndex = 0;   // índice en checklistSteps[]
+        let isAdvancing = false;    // bloqueo durante la transición
 
         // =====================================================
         // FUNCIONES DEL PANEL
         // =====================================================
-        function openChecklist(stepId) {
-            const step = checklistSteps.find(s => s.id === stepId);
-            if (!step) return;
-            currentStepId = stepId;
 
-            document.getElementById('panel-header-label').textContent = `Paso ${step.id}`;
+        // =====================================================
+        // FUNCIÓN CENTRAL DE MOVIMIENTO — desacoplada (fire-and-forget)
+        // El UI avanza SIEMPRE en 800ms. La cámara se mueve en segundo plano.
+        // =====================================================
+
+        // Mapa inverso: stepId → sid del Mattertag generado
+        // Se puebla dentro del loop de sdk.Mattertag.add (más abajo)
+        const stepSidMap = {};
+
+        function navigateToStep(index) {
+            if (index < 0 || index >= checklistSteps.length) {
+                isAdvancing = false;
+                return;
+            }
+
+            const step = checklistSteps[index];
+
+            // 1. Forzar UI a avanzar (anti-bloqueos)
+            setTimeout(() => {
+                renderChecklistUI(index);
+                isAdvancing = false; 
+            }, 800);
+
+            // 2. Doble Intento de Navegación
+            try {
+                if (!mpSdk) return;
+                
+                const sweepId = step.coordinates.sweep_id ? step.coordinates.sweep_id.trim() : null;
+                const tagSid = stepSidMap[step.id];
+
+                console.log(`🚀 [Paso ${step.id}] Intentando salto a Sweep: ${sweepId}`);
+
+                // INTENTO A: Teletransporte al Sweep del piso
+                mpSdk.Sweep.moveTo(sweepId, {
+                    transition: mpSdk.Sweep.Transition.INSTANT
+                }).then(() => {
+                    console.log('✅ [ÉXITO] Cámara teletransportada al Sweep.');
+                }).catch(sweepError => {
+                    console.warn(`⚠️ Falló el salto al Sweep. Intentando Plan B (Mattertag). Error:`, sweepError);
+                    
+                    // INTENTO B: Si falla el piso, volamos hacia el Tag
+                    if (tagSid) {
+                        mpSdk.Mattertag.navigateTo(tagSid, {
+                            transition: mpSdk.Sweep.Transition.FLY
+                        }).then(() => {
+                            console.log('✅ [ÉXITO] Cámara navegó hacia el Mattertag.');
+                        }).catch(tagError => {
+                            console.error(`❌ [ERROR CRÍTICO] El bundle local bloqueó ambos métodos de movimiento:`, tagError);
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error(`❌ Error general en SDK:`, error);
+            }
+        }
+
+        // =====================================================
+        // RENDERIZADO DE UI (solo panel, sin tocar la cámara)
+        // =====================================================
+        function renderChecklistUI(index) {
+            if (index < 0 || index >= checklistSteps.length) return;
+            currentStepIndex = index;
+            const step = checklistSteps[index];
+
+            document.getElementById('panel-header-label').textContent = `Paso ${step.id} de ${checklistSteps.length}`;
             document.getElementById('panel-step-emoji').textContent = stepEmojis[step.id] || '📋';
             document.getElementById('panel-title-text').textContent = step.label;
             document.getElementById('panel-objective').textContent = step.objective;
 
             renderItems(step);
             updateProgress(step);
-
             document.getElementById('checklist-panel').classList.add('visible');
+
+            // ── VISIBILIDAD RADIO.FBX ──────────────────────────────
+            // Solo visible en Paso 1 (index === 0)
+            if (index === 0) {
+                loadRadioModel();   // carga (si no existe) y muestra
+            } else {
+                hideRadioModel();   // oculta sin destruir el nodo
+            }
+
+            isAdvancing = false;  // liberar bloqueo una vez que el UI está listo
+        }
+
+        // Alias principal (usado desde tag click y auto-avance)
+        function renderCurrentStep(index) {
+            navigateToStep(index);
+        }
+
+        /**
+         * Abrir por stepId cuando el usuario hace click en un Mattertag.
+         * El usuario YA está en la posición del tag → solo actualizar UI, NO navegar.
+         */
+        function openChecklist(stepId) {
+            const index = checklistSteps.findIndex(s => s.id === stepId);
+            if (index !== -1) renderChecklistUI(index);
         }
 
         function renderItems(step) {
             const container = document.getElementById('checklist-items-container');
             container.innerHTML = '';
+
+            // 1. Dibujar los checkboxes
             step.items.forEach((item, idx) => {
                 const checked = checkState[step.id][idx];
                 const div = document.createElement('div');
@@ -464,12 +669,38 @@
                 div.onclick = () => toggleItem(step.id, idx);
                 container.appendChild(div);
             });
+
+            // 2. Lógica del Botón Dinámico
+            const allChecked = checkState[step.id].every(Boolean);
+            if (allChecked) {
+                const btn = document.createElement('button');
+                btn.className = 'next-step-btn';
+                const nextIndex = currentStepIndex + 1;
+
+                if (nextIndex < checklistSteps.length) {
+                    btn.textContent = `Ir al Paso ${checklistSteps[nextIndex].id} →`;
+                    btn.onclick = () => {
+                        if (isAdvancing) return;
+                        isAdvancing = true;
+                        btn.textContent = 'Navegando...';
+                        btn.style.opacity = '0.7';
+                        navigateToStep(nextIndex); // mueve cámara y luego actualiza UI
+                    };
+                } else {
+                    btn.textContent = 'Finalizar Capacitación ✅';
+                    btn.onclick = () => {
+                        showAllDone();
+                    };
+                }
+                container.appendChild(btn);
+            }
         }
 
         function toggleItem(stepId, idx) {
+            if (isAdvancing) return;
             checkState[stepId][idx] = !checkState[stepId][idx];
             const step = checklistSteps.find(s => s.id === stepId);
-            renderItems(step);
+            renderItems(step); // renderItems ahora dibuja el botón si está completo
             updateProgress(step);
         }
 
@@ -481,10 +712,30 @@
             document.getElementById('progress-bar').style.width = pct + '%';
         }
 
+
+
         function closeChecklist() {
             document.getElementById('checklist-panel').classList.remove('visible');
-            currentStepId = null;
         }
+
+        /** Pantalla de cierre cuando se completan todos los pasos */
+        function showAllDone() {
+            const container = document.getElementById('checklist-items-container');
+            container.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;padding:40px 20px;text-align:center">
+                    <div style="font-size:48px">🎉</div>
+                    <div style="font-size:15px;font-weight:700;color:#ffffff">¡Checklist completo!</div>
+                    <div style="font-size:12px;color:#8e8e93;line-height:1.5">Todos los pasos del procedimiento de bloqueo han sido completados exitosamente.</div>
+                </div>
+            `;
+            document.getElementById('progress-label').textContent = `${checklistSteps.length} / ${checklistSteps.length} pasos completados`;
+            document.getElementById('progress-bar').style.width = '100%';
+            document.getElementById('panel-header-label').textContent = 'Finalizado ✓';
+            document.getElementById('panel-step-emoji').textContent = '✅';
+            document.getElementById('panel-title-text').textContent = 'Procedimiento completado';
+            document.getElementById('panel-objective').textContent = 'Todos los pasos han sido ejecutados correctamente.';
+        }
+
 
         function toggleFbxModel() {
             if (!fbxNode) return;
@@ -506,11 +757,49 @@
         }
 
         // =====================================================
+        // RADIO MODEL — carga y control de visibilidad
+        // =====================================================
+        async function loadRadioModel() {
+            if (!mpSdk) { console.warn('⚠️ [Radio] SDK no disponible aún.'); return; }
+            if (radioLoaded && radioNode) {
+                // Ya cargado: solo hacer visible
+                radioNode.obj3D.visible = true;
+                console.log('📻 [Radio] Nodo reutilizado — visible = true');
+                return;
+            }
+
+            try {
+                const s = RADIO_CONFIG.scale;
+                radioNode = await mpSdk.Scene.createNode();
+                radioNode.addComponent('mp.fbxLoader', {
+                    url: RADIO_CONFIG.url,
+                    visible: true,
+                    localScale: { x: s, y: s, z: s },
+                    localPosition: RADIO_CONFIG.position,
+                    localRotation: RADIO_CONFIG.rotation
+                });
+                radioNode.start();
+                radioLoaded = true;
+                console.log('📻 [Radio] Modelo cargado en posición:', RADIO_CONFIG.position);
+            } catch (e) {
+                console.error('❌ [Radio] Error al cargar Radio.fbx:', e);
+            }
+        }
+
+        function hideRadioModel() {
+            if (radioNode && radioNode.obj3D) {
+                radioNode.obj3D.visible = false;
+                console.log('📻 [Radio] Oculto (paso > 0)');
+            }
+        }
+
+        // =====================================================
         // INICIALIZACIÓN DEL SDK
         // =====================================================
         showcase.addEventListener('load', async function () {
             try {
                 sdk = await showcase.contentWindow.MP_SDK.connect(showcase, 'myhcpcdgdh7907ggei7s5f4md');
+                mpSdk = sdk;   // exponer alias semántico para uso en renderCurrentStep()
             } catch (e) {
                 console.error(e);
                 return;
@@ -575,7 +864,7 @@
             // =====================================================
             // AGREGAR TAGS DEL CHECKLIST CON sdk.Mattertag.add
             // =====================================================
-            const tagSidMap = {}; // sid -> stepId
+            const tagSidMap = {}; // sid -> stepId  (para clicks en tags)
 
             for (const step of checklistSteps) {
                 try {
@@ -584,7 +873,7 @@
                     const iconDataUrl = makeNumberIcon(step.id, step.color);
                     await sdk.Mattertag.registerIcon(iconId, iconDataUrl);
 
-                    // 2. Crear el tag sin iconId (se lo asignamos después con editIcon)
+                    // 2. Crear el Mattertag con anchorPosition del paso
                     const [sid] = await sdk.Mattertag.add({
                         label: step.label,
                         description: '',
@@ -592,31 +881,55 @@
                         stemVector: step.stemVector,
                         color: step.color
                     });
-                    tagSidMap[sid] = step.id;
 
-                    // 3. Aplicar el ícono numerado al disco del tag
+                    // 3. Poblar ambos mapas
+                    tagSidMap[sid] = step.id;  // sid → stepId  (para click handler)
+                    stepSidMap[step.id] = sid;    // stepId → sid  (para navigateToStep)
+
+                    // 4. Aplicar el ícono numerado al disco del tag
                     await sdk.Mattertag.editIcon(sid, iconId);
 
-                    console.log(`✅ Mattertag creado con ícono: "${step.label}" -> sid: ${sid}`);
+                    console.log(`✅ Mattertag creado: "${step.label}" | sid: ${sid} | pos:`, step.anchorPosition);
                 } catch (e) {
                     console.error(`❌ Error creando tag paso ${step.id}:`, e);
                 }
             }
 
-            // Prevenir que se abra el panel nativo de Matterport
-            const allSids = Object.keys(tagSidMap);
-            if (allSids.length > 0) {
-                sdk.Mattertag.preventAction(allSids, { opening: false })
-                    .then(() => console.log('✅ preventAction OK'))
-                    .catch(e => console.warn('preventAction no disponible:', e));
+            // ── ESTRATEGIA 1: evento CLICK directo del SDK ──────────
+            sdk.on(sdk.Mattertag.Event.CLICK, function (sid) {
+                console.log('🔖 [Estrategia-1] Tag clickeado, sid:', sid);
+                const stepId = tagSidMap[sid];
+                if (stepId !== undefined) {
+                    openChecklist(stepId);
+                }
+            });
+
+            // ── ESTRATEGIA 2: observable Mattertag.data (fallback) ──
+            // Detecta cuando el usuario navega hacia un tag (hover/open)
+            sdk.Mattertag.data.subscribe({
+                onAdded: function (index, item) { /* tags registrados */ },
+                onRemoved: function (index, item) { /* tags eliminados */ },
+                onUpdated: function (index, item) {
+                    // item.enabled === false cuando el tag está siendo "abierto"
+                    // Algunos builds del Bundle SDK no disparan CLICK; usan este canal
+                    if (item && item.sid && tagSidMap[item.sid] !== undefined) {
+                        console.log('🔖 [Estrategia-2] Tag updated (posible click):', item.sid, item);
+                    }
+                },
+                onCollectionUpdated: function (collection) { /* colección completa */ }
+            });
+
+            // ── preventAction por sid individual (evita popup nativo) ─
+            for (const tagSid of Object.keys(tagSidMap)) {
+                sdk.Mattertag.preventAction(tagSid, { opening: false })
+                    .then(() => console.log(`✅ preventAction OK: ${tagSid}`))
+                    .catch(e => console.warn(`preventAction no soportado (${tagSid}):`, e.message || e));
             }
 
-            // Escuchar clicks en los tags y abrir el panel del checklist
-            sdk.on(sdk.Mattertag.Event.CLICK, function (sid) {
-                console.log('🔖 Tag clickeado, sid:', sid);
-                const stepId = tagSidMap[sid];
-                if (stepId) {
-                    openChecklist(stepId);
+            // ── Logger de posición (debug) ─────────────────────────
+            sdk.Sweep.current.subscribe(function (currentSweep) {
+                if (currentSweep && currentSweep.sid) {
+                    console.log(`📍 SWEEP ACTUAL --> sid: "${currentSweep.sid}"`);
                 }
             });
 
